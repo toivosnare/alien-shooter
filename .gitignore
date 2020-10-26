@@ -1,0 +1,7 @@
+.metadata
+.sdk
+*.pdf
+*.log
+*.m4v
+/Embedded_Exercise_normal/Debug/
+/Embedded_Exercise_normal/Release/
