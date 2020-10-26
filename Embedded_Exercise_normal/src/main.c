@@ -69,8 +69,8 @@
 #define enable_interrupts
 
 #define SHIP_R 0xff
-#define SHIP_G 0x0
-#define SHIP_B 0x0
+#define SHIP_G 0xff
+#define SHIP_B 0xff
 #define ALIEN_R 0x0
 #define ALIEN_G 0xff
 #define ALIEN_B 0x0
@@ -108,6 +108,9 @@ volatile uint8_t player_x;
 volatile uint8_t alien_x;
 volatile uint8_t alien_dir;
 volatile uint8_t game_state;
+
+volatile uint8_t led_flags = 1;
+volatile uint8_t led_dir = 0;
 
 void render_ship(uint8_t x);
 void render_alien(uint8_t x);
@@ -181,6 +184,16 @@ void render_defeat() {
 	set_pixel(6, 6, DEFEAT_R, DEFEAT_G, DEFEAT_B);
 }
 
+void render_score() {
+	for (int y = 0; y < WIN_HITS - player_hits; ++y) {
+		set_pixel(WIDTH - 1, HEIGHT - y - 2, VICTORY_R, VICTORY_G, VICTORY_B);
+	}
+
+	for (int y = 0; y < MAX_MISSES - player_misses; ++y) {
+		set_pixel(0, HEIGHT - y - 2, DEFEAT_R, DEFEAT_G, DEFEAT_B);
+	}
+}
+
 void fire(uint8_t x) {
 	is_proj_fired = 1;
 	projectile_x = x;
@@ -235,6 +248,7 @@ void TickHandler(void *CallBackRef) {
 	} else {
 		render_alien(alien_x);
 		render_ship(player_x);
+		render_score();
 		if (is_proj_fired)
 			render_projectile(projectile_x, projectile_y);
 	}
@@ -258,6 +272,7 @@ void TickHandler1(void *CallBackRef) {
 	uint32_t StatusEvent;
 
 	//****Write code here ****
+	blinker();
 
 	if (alien_x == WIDTH - 1)
 		alien_dir = -1;
