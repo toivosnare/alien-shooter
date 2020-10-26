@@ -22,12 +22,36 @@
 
 .global blinker
 
-
 blinker:
 
-	push {r0}				//Push used register to stack
+	push {r0, r1, r2, r3, r4}				//Push used register to stack
 
+	ldr r0, =0x41200000
+	ldr r1, =led_flags
+	ldr r2, =led_dir
+	ldrb r3, [r1]
+	ldrb r4, [r2]
+	
+	strb r3, [r0]
+	
+	cmp r4, #0
+	bne shift_right
+	mov r3, r3, lsl #1
+	b dir
+shift_right:
+	mov r3, r3, lsr #1
+dir:
+	cmp r3, #8
+	beq dir_right
+	cmp r3, #1
+	bne end
+	mov r4, #0
+	b end
+dir_right:
+	mov r4, #1
+end:
+	strb r3, [r1]
+	strb r4, [r2]
 
-
-	pop {r0}				//Pop register from stack, Remember the pop order if used more than one register (first pushed, last popped)
-	bx lr					//Return to place where this function have been called.
+	pop {r4, r3, r2, r1, r0}				//Pop register from stack, Remember the pop order if used more than one register (first pushed, last popped)
+	bx lr				//Return to place where this function have been called.
