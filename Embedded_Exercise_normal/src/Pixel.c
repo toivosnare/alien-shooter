@@ -21,9 +21,6 @@
 #define CTRL_SCK (uint8_t)0x8
 #define CTRL_SDA (uint8_t)0x10
 
-// Advance clock once by toggling twice.
-#define ADV_CLK *CONTROL ^= CTRL_SCK; *CONTROL ^= CTRL_SCK
-
 //Table for pixel dots.
 //				 dots[X][Y][COLOR]
 volatile uint8_t dots[WIDTH][HEIGHT][COLOR_BYTES] = {0};
@@ -31,13 +28,19 @@ volatile uint8_t dots[WIDTH][HEIGHT][COLOR_BYTES] = {0};
 // Holds current column coordinate.
 volatile uint8_t current_x = 0;
 
+// Advance clock once by setting and clearing it.
+void advance_clock() {
+	*CONTROL |= CTRL_SCK;
+	*CONTROL &= ~CTRL_SCK;
+}
+
 // Setup led matrix and set black.
 void setup() {
 	// Reset all control flags.
 	*CONTROL = 0x0;
 	// Set reset bit high. Reset is active low.
 	*CONTROL |= CTRL_RST;
-	ADV_CLK;
+	advance_clock();
 
 	// Switch bank to luminance.
 	*CONTROL &= ~CTRL_SB;
@@ -47,7 +50,7 @@ void setup() {
 	for(uint8_t i = 0; i < WIDTH; ++i) {
 		select_column(i);
 		for (uint8_t j = 0; j < COLOR_BYTES * LUMINANCE_W * HEIGHT; ++j) {
-			ADV_CLK;
+			advance_clock();
 		}
 		latch_column();
 	}
@@ -84,10 +87,10 @@ void draw_column(uint8_t x) {
 				} else {
 					*CONTROL &= ~CTRL_SDA;
 				}
-				ADV_CLK;
+				advance_clock();
 			}
 		}
-	}
+	}	
 	latch_column();
 	select_column(x);
 }
